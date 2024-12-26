@@ -33,9 +33,6 @@ class XTtsEngine:
         self.post_init()
     
     def post_init(self):
-        if self.model_setting.profile_run:
-            os.environ["VLLM_TORCH_PROFILER_DIR"] = "/home/zhn/vllm_profile3"
-
         # initialize tokenizer
         logger.info('Loading tokenizer...')
         self.tokenizer = Tokenizer.from_file('/home/zhn/fishtts/vocab.json')
@@ -47,7 +44,7 @@ class XTtsEngine:
             logger.info('Using AsyncLLMEngine...')
             engine_args = AsyncEngineArgs(model=self.model_setting.model_dir,
                                          gpu_memory_utilization=self.model_setting.gpu_memory_utilization,
-                                         dtype=self.model_setting.dtype,
+                                         dtype=self.model_setting.dtype, enforce_eager=self.model_setting.enforce_eager,
                                          skip_tokenizer_init=True)
             if self.model_setting.support_lora:
                 engine_args.enable_lora = True
@@ -58,12 +55,12 @@ class XTtsEngine:
             if self.model_setting.support_lora:
                 self.llm_engine = LLM(self.model_setting.model_dir,
                                       gpu_memory_utilization=self.model_setting.gpu_memory_utilization, 
-                                      dtype=self.model_setting.dtype,
+                                      dtype=self.model_setting.dtype, enforce_eager=self.model_setting.enforce_eager,
                                       skip_tokenizer_init=True, enable_lora=True, max_lora_rank=128)
             else:
                 self.llm_engine = LLM(self.model_setting.model_dir,
                                       gpu_memory_utilization=self.model_setting.gpu_memory_utilization, 
-                                      dtype=self.model_setting.dtype,
+                                      dtype=self.model_setting.dtype, enforce_eager=self.model_setting.enforce_eager,
                                       skip_tokenizer_init=True)
         self.max_tokens = 2048
 
@@ -128,8 +125,7 @@ class XTtsEngine:
         if lora_path:
             lora_request=LoRARequest("lora", 1, lora_local_path=lora_path)
         
-        if self.model_setting.profile_run:
-            os.environ["VLLM_TORCH_PROFILER_DIR"] = "/home/zhn/vllm_profile3"
+        if self.model_setting.profile_run is not None:
             self.max_tokens = 10
             self.llm_engine.start_profile()
 
@@ -162,7 +158,7 @@ class XTtsEngine:
             metrics.time_end = time.perf_counter()
             metrics.calc_non_streaming()
     
-        if self.model_setting.profile_run:
+        if self.model_setting.profile_run is not None:
             self.llm_engine.stop_profile()
             time.sleep(15)
 
