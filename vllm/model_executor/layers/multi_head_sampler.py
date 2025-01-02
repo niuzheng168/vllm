@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 import torch
 import torch.nn as nn
 
-from vllm.model_executor.layers.sampler import MaybeDeferredSampleResultType, SampleResultArgsType, SampleReturnType, SamplerOutput, _apply_top_k_top_p, _get_bin_counts_and_mask
+from vllm.model_executor.layers.sampler import MaybeDeferredSampleResultType, SampleResultArgsType, SampleReturnType, SamplerOutput, _apply_top_k_top_p
 from vllm.triton_utils import HAS_TRITON
 
 from vllm.model_executor.sampling_metadata import (SamplingMetadata,
@@ -243,11 +243,29 @@ class MultiheadSampler(nn.Module):
         
         return (sampling_tensors, do_penalties, do_top_p_top_k, is_prompt)
     
+    def _get_bin_counts_and_mask(
+        self,
+        tokens: torch.Tensor,
+        vocab_size: int,
+        num_seqs: int,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        # Compute the bin counts for the tokens.
+        # vocab_size + 1 for padding.
+        bin_counts = torch.zeros((num_seqs, vocab_size + 1),
+                                dtype=torch.long,
+                                device=tokens.device)
+        bin_counts.scatter_add_(1, tokens, torch.ones_like(tokens))
+        bin_counts = bin_counts[:, :vocab_size]
+        mask = bin_counts > 0
+
+        return bin_counts, mask
+
+    
     def _apply_penalties(self, logits: torch.Tensor,
                      output_tokens_tensor: torch.Tensor,
                      repetition_penalties: torch.Tensor) -> torch.Tensor:
         num_seqs, vocab_size = logits.shape
-        output_bin_counts, output_mask = _get_bin_counts_and_mask(
+        output_bin_counts, output_mask = self._get_bin_counts_and_mask(
             output_tokens_tensor, vocab_size, num_seqs)
 
         repetition_penalties = repetition_penalties[:, None].repeat(1, vocab_size)
