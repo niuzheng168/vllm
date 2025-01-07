@@ -173,6 +173,7 @@ _MULTIMODAL_MODELS = {
     
     # TTS
     "FishTtsLlm": ("fishtts", "FishTtsLlm"),
+    "WhisperForConditionalGeneration": ("whisper", "WhisperForConditionalGeneration"),  # noqa: E501
 }
 
 _SPECULATIVE_DECODING_MODELS = {
