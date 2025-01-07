@@ -36,7 +36,7 @@ class ModelSetting:
         self.support_lora = support_lora
         self.use_onnx_graph = False
 
-        self.gpu_memory_utilization = 0.3
+        self.gpu_memory_utilization = 0.7
         self.scale_rate = scale_rate
         self.profile_run = profile_run
         self.enforce_eager = enforce_eager

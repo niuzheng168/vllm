@@ -121,6 +121,7 @@ def _bgmv_expand_slice(
     assert lora_b_weights.dtype in [
         torch.float16,
         torch.bfloat16,
+        torch.float32
     ]
     assert inputs.size(1) == lora_b_weights.size(-1)
 

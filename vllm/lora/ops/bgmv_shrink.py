@@ -97,10 +97,11 @@ def _bgmv_shrink(
         scaling (float):  Scaling factor.
     """
     assert inputs.dtype == lora_a_weights.dtype
-    assert inputs.dtype in [torch.float16, torch.bfloat16]
+    assert inputs.dtype in [torch.float16, torch.bfloat16, torch.float32]
     assert lora_a_weights.dtype in [
         torch.float16,
         torch.bfloat16,
+        torch.float32
     ]
     assert inputs.size(1) == lora_a_weights.size(-1)
     assert inputs.is_contiguous()

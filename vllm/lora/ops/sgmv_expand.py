@@ -185,7 +185,7 @@ def _sgmv_expand(
     """
     assert inputs.dtype in [torch.float16, torch.bfloat16, torch.float32]
     for weight in lora_b_weights:
-        assert weight.dtype in [torch.float16, torch.bfloat16]
+        assert weight.dtype in [torch.float16, torch.bfloat16, torch.float32]
 
     assert inputs.size(1) == token_nums
     assert inputs.size(0) == len(lora_b_weights)
